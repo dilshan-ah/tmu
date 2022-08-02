@@ -213,18 +213,23 @@ class _ProfileState extends State<Profile>  with TickerProviderStateMixin{
                               .snapshots(),
                           builder: (BuildContext context, AsyncSnapshot snapshot){
                             var data = snapshot.data;
-                            return RichText(
-                              overflow: TextOverflow.ellipsis,
-                              text: TextSpan(
-                                text: data["first-name"]+" "+data["last-name"],
-                                style: TextStyle(
-                                    fontFamily: "Rubik",
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 14,
-                                    color: Colors.white
+
+                            if(data != null){
+                              return RichText(
+                                overflow: TextOverflow.ellipsis,
+                                text: TextSpan(
+                                  text: data["first-name"]+" "+data["last-name"],
+                                  style: TextStyle(
+                                      fontFamily: "Rubik",
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 14,
+                                      color: Colors.white
+                                  ),
                                 ),
-                              ),
-                            );
+                              );
+                            }else{
+                              return Text("User");
+                            }
                           }
                       ),
                       SizedBox(height: 10,),
@@ -404,7 +409,7 @@ class _ProfileState extends State<Profile>  with TickerProviderStateMixin{
                                                             color: Color(0xff3D3D3D)),
                                                         shape: BoxShape.circle,
                                                         image: DecorationImage(
-                                                            image: AssetImage(
+                                                            image: NetworkImage(
                                                                 data["downloadUrl"]),
                                                             fit: BoxFit.cover)),
                                                   );
@@ -416,12 +421,30 @@ class _ProfileState extends State<Profile>  with TickerProviderStateMixin{
                                             ),
                                             TextButton(
                                               onPressed: () {},
-                                              child: Text(
-                                                "Dilshan Ahmed",
-                                                style: TextStyle(
-                                                    fontFamily: "Rubik",
-                                                    fontSize: 16,
-                                                    color: Colors.white),
+                                              child: StreamBuilder(
+                                                  stream: FirebaseFirestore.instance.collection("users-data")
+                                                      .doc(FirebaseAuth.instance.currentUser!.email)
+                                                      .snapshots(),
+                                                  builder: (BuildContext context, AsyncSnapshot snapshot){
+                                                    var data = snapshot.data;
+
+                                                    if(data != null){
+                                                      return RichText(
+                                                        overflow: TextOverflow.ellipsis,
+                                                        text: TextSpan(
+                                                          text: data["first-name"]+" "+data["last-name"],
+                                                          style: TextStyle(
+                                                              fontFamily: "Rubik",
+                                                              fontWeight: FontWeight.w500,
+                                                              fontSize: 14,
+                                                              color: Colors.white
+                                                          ),
+                                                        ),
+                                                      );
+                                                    }else{
+                                                      return Text("User");
+                                                    }
+                                                  }
                                               ),
                                             )
                                           ],

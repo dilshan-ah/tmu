@@ -76,12 +76,11 @@ class _LiveState extends State<Live> {
                       height: 45,
                       padding: EdgeInsets.all(2),
                       decoration: BoxDecoration(
-                          color: Theme.of(context).accentColor.withOpacity(0.7),
-                          border: Border.all(width: 2, color: Color(0xff3D3D3D)),
-                          shape: BoxShape.circle,
-                          image: DecorationImage(
-                              image: NetworkImage("https://commons.wikimedia.org/wiki/File:User-avatar.svg"),
-                              fit: BoxFit.contain)),
+                        color: Theme.of(context).accentColor.withOpacity(0.7),
+                        border: Border.all(width: 2, color: Color(0xff3D3D3D)),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(Icons.person,size: 50,),
                     ),
                   );
                 }else{
