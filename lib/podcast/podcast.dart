@@ -1,0 +1,230 @@
+import 'package:flutter/material.dart';
+
+class Podcast extends StatefulWidget {
+  const Podcast({Key? key}) : super(key: key);
+
+  @override
+  _PodcastState createState() => _PodcastState();
+}
+
+class _PodcastState extends State<Podcast> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Theme.of(context).primaryColor,
+      appBar: AppBar(
+        toolbarHeight: 90,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leadingWidth: 80,
+        leading: Image(
+          width: 40,
+          image: AssetImage('asset/image/logo.png'),
+        ),
+
+        centerTitle: false,
+        titleSpacing: 0,
+
+        title: RichText(
+          text: TextSpan(
+              style: TextStyle(
+                  fontFamily: "RozhaOne",
+                  fontSize: 23
+              ),
+              children: [
+                TextSpan(
+                    text: "TMU",
+                    style: TextStyle(
+                        color: Color(0xffF89009)
+                    )
+                ),
+                TextSpan(
+                    text: "DIRECT"
+                ),
+              ]
+          ),
+        ),
+
+        actions: [
+          Container(
+            width: 45,
+            height: 45,
+            decoration: BoxDecoration(
+                border: Border.all(
+                    width: 2,
+                    color: Color(0xff3D3D3D)
+                ),
+                shape: BoxShape.circle
+            ),
+
+            child: Icon(Icons.headset_rounded,color: Color(0xff3D3D3D),),
+          ),
+          SizedBox(width: 10,),
+          InkWell(
+            child: Container(
+              width: 45,
+              height: 45,
+              padding: EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                  color: Theme.of(context).accentColor.withOpacity(0.7),
+                  border: Border.all(
+                      width: 2,
+                      color: Color(0xff3D3D3D)
+                  ),
+                  shape: BoxShape.circle,
+                  image: DecorationImage(
+                      image: AssetImage('asset/image/user.webp'),
+                      fit: BoxFit.contain
+                  )
+              ),
+            ),
+          ),
+          SizedBox(width: 10,),
+        ],
+      ),
+
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              height: 20,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Text("Categories",style: TextStyle(
+                  fontFamily: "Rubik",
+                  fontSize: 18,
+                  color: Colors.white
+              ),),
+            ),
+            SizedBox(height: 20,),
+            Container(
+              height: 45,
+              child: ListView.builder(
+                  physics: BouncingScrollPhysics(),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: 5,
+                  itemBuilder: (context, index) {
+                    if (index < 1) {
+                      return SizedBox(
+                        width: 15,
+                      );
+                    }
+                    return InkWell(
+                      child: Container(
+                        margin: EdgeInsets.only(right: 15),
+                        width: 120,
+                        decoration: BoxDecoration(
+                            color: Color(0xffF89009),
+                            borderRadius: BorderRadius.circular(15)),
+                        child: Center(
+                            child: Text(
+                              'Business',
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.white,
+                                  fontFamily: "Rubik"),
+                            )),
+                      ),
+                    );
+                  }),
+            ),
+            SizedBox(
+              height: 20,
+            ),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 20,vertical: 20),
+              child: GridView.builder(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  itemCount: 6,
+                  gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                      maxCrossAxisExtent: 210,
+                      childAspectRatio: 3 / 5.2,
+                      crossAxisSpacing: 15,
+                      mainAxisSpacing: 15
+                  ),
+                  itemBuilder: (context,index){
+                    return Container(
+                      width: MediaQuery.of(context).size.width/2,
+                      //margin: EdgeInsets.only(right: 15),
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(15),
+                          color: Color(0xff1C1F23)
+                      ),
+                      child: Column(
+                        children: [
+                          Container(
+                            height: 140,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(15),
+                                image: DecorationImage(
+                                    fit: BoxFit.cover,
+                                    image: AssetImage('asset/image/song.png')
+                                )
+                            ),
+                          ),
+                          Container(
+                            padding: EdgeInsets.all(10),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text("Ney",style: TextStyle(
+                                        fontFamily: "Rubik",
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.white
+                                    ),),
+                                    SizedBox(height: 10,),
+                                    Text("Hazan Mevsimi",style: TextStyle(
+                                        fontFamily: "Rubik",
+                                        fontSize: 10,
+                                        color: Color(0xff828282)
+                                    ),),
+                                    SizedBox(height: 10,),
+
+                                    Row(
+                                      children: [
+                                        IconButton(
+                                            onPressed: (){},
+                                            icon: Icon(Icons.thumb_up,color: Color(0xffF85F55),size: 20,
+                                            )
+                                        ),
+                                        IconButton(onPressed: (){}, icon: Icon(Icons.thumb_down,color: Color(0xff4F4F4F),size: 20)),
+                                      ],
+                                    )
+                                  ],
+                                ),
+                                InkWell(
+                                  onTap: (){},
+                                  child: Container(
+                                    width: 25,
+                                    height: 25,
+                                    decoration: BoxDecoration(
+                                        color: Color(0xff4F4F4F),
+                                        shape: BoxShape.circle
+                                    ),
+
+                                    child: Icon(Icons.play_arrow),
+                                  ),
+                                )
+                              ],
+                            ),
+                          )
+                        ],
+                      ),
+                    );
+                  }
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
