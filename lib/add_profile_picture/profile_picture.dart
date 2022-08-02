@@ -2,9 +2,9 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:tmudirect/dashboard/dashboard.dart';
 import 'package:tmudirect/widgets/auth_widgets/auth_title.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
@@ -31,7 +31,7 @@ class _ProfilePictureState extends State<ProfilePicture> {
     setState(() {
       if (pickedFile != null) {
         _photo = File(pickedFile.path);
-        uploadFile();
+        uploadImage();
       } else {
         print('No image selected.');
       }
@@ -44,29 +44,39 @@ class _ProfilePictureState extends State<ProfilePicture> {
     setState(() {
       if (pickedFile != null) {
         _photo = File(pickedFile.path);
-        uploadFile();
+        uploadImage();
       } else {
         print('No image selected.');
       }
     });
   }
 
-  Future uploadFile() async {
+
+  // upload image to firbase storage
+  Future uploadImage() async{
+
     if (_photo == null) return;
     final fileName = basename(_photo!.path);
-    final destination = 'Profilepics/$fileName';
+    final destination = 'Profilepics';
 
-    try {
-      final ref = firebase_storage.FirebaseStorage.instance
-          .ref(destination)
-          .child(_auth.currentUser!.uid);
-      firebase_storage.UploadTask uploadTask = ref.putFile(_photo!);
-      firebase_storage.TaskSnapshot snap = await uploadTask;
-      String downloadurl = await snap.ref.getDownloadURL();
-      return downloadurl;
-    } catch (e) {
-      print('error occured');
-    }
+    //final postID = DateTime.now().microsecondsSinceEpoch.toString();
+
+    Reference ref = firebase_storage.FirebaseStorage.instance.
+    ref(destination).
+    child("${_auth.currentUser?.email}/images").
+    child(fileName);
+
+    await ref.putFile(_photo!);
+
+    String downloadUrl = await ref.getDownloadURL();
+
+    // uploading cloud firestore database
+    FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
+
+    await firebaseFirestore.collection("users-picture")
+        .doc(_auth.currentUser?.email).
+    collection("images").doc(_auth.currentUser?.uid).
+    set({"downloadUrl": downloadUrl});
   }
 
 
@@ -147,7 +157,7 @@ class _ProfilePictureState extends State<ProfilePicture> {
                                 color: Theme.of(context).accentColor,
                                 onPressed: (){
                                   if(_photo != null){
-                                    uploadFile();
+                                    uploadImage();
                                     Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>Dashboard()));
                                   }
                                 },

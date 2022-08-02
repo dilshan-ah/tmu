@@ -1,5 +1,13 @@
+import 'dart:io';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
+import 'package:path/path.dart';
 
 class Profile extends StatefulWidget {
   const Profile({Key? key}) : super(key: key);
@@ -9,6 +17,131 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile>  with TickerProviderStateMixin{
+
+  profilepic(data){
+    return Container(
+      width: 90,
+      height: 90,
+      decoration: BoxDecoration(
+          color: Color(0xffF89009),
+          shape: BoxShape.circle,
+          image: DecorationImage(
+              fit: BoxFit.cover,
+              image: NetworkImage(data["downloadUrl"])
+          )
+      ),
+    );
+  }
+
+
+  firebase_storage.FirebaseStorage storage =
+      firebase_storage.FirebaseStorage.instance;
+
+  File? _photo;
+  final ImagePicker _picker = ImagePicker();
+
+  Future imgFromGallery() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+
+    setState(() {
+      if (pickedFile != null) {
+        _photo = File(pickedFile.path);
+        uploadImage();
+      } else {
+        print('No image selected.');
+      }
+    });
+
+    if (_photo == null) return;
+    final fileName = basename(_photo!.path);
+    final destination = 'Profilepics';
+
+    //final postID = DateTime.now().microsecondsSinceEpoch.toString();
+
+    Reference ref = firebase_storage.FirebaseStorage.instance.
+    ref(destination).
+    child("${_auth.currentUser?.email}/images").
+    child(fileName);
+
+    await ref.putFile(_photo!);
+
+    String downloadUrl = await ref.getDownloadURL();
+
+    // uploading cloud firestore database
+    FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
+
+    await firebaseFirestore.collection("users-picture")
+        .doc(_auth.currentUser?.email).
+    collection("images").doc(_auth.currentUser?.uid).
+    set({"downloadUrl": downloadUrl});
+  }
+
+  Future imgFromCamera() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.camera);
+
+    setState(() {
+      if (pickedFile != null) {
+        _photo = File(pickedFile.path);
+        uploadImage();
+      } else {
+        print('No image selected.');
+      }
+    });
+
+    if (_photo == null) return;
+    final fileName = basename(_photo!.path);
+    final destination = 'Profilepics';
+
+    //final postID = DateTime.now().microsecondsSinceEpoch.toString();
+
+    Reference ref = firebase_storage.FirebaseStorage.instance.
+    ref(destination).
+    child("${_auth.currentUser?.email}/images").
+    child(fileName);
+
+    await ref.putFile(_photo!);
+
+    String downloadUrl = await ref.getDownloadURL();
+
+    // uploading cloud firestore database
+    FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
+
+    await firebaseFirestore.collection("users-picture")
+        .doc(_auth.currentUser?.email).
+    collection("images").doc(_auth.currentUser?.uid).
+    set({"downloadUrl": downloadUrl});
+  }
+
+  Future uploadImage() async{
+
+    if (_photo == null) return;
+    final fileName = basename(_photo!.path);
+    final destination = 'Profilepics';
+
+    //final postID = DateTime.now().microsecondsSinceEpoch.toString();
+
+    Reference ref = firebase_storage.FirebaseStorage.instance.
+    ref(destination).
+    child("${_auth.currentUser?.email}/images").
+    child(fileName);
+
+    await ref.putFile(_photo!);
+
+    String downloadUrl = await ref.getDownloadURL();
+
+    // uploading cloud firestore database
+    FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
+
+    await firebaseFirestore.collection("users-picture")
+        .doc(_auth.currentUser?.email).
+    collection("images").doc(_auth.currentUser?.uid).
+    set({"downloadUrl": downloadUrl});
+  }
+
+
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+
   @override
   Widget build(BuildContext context) {
     TabController tabController = TabController(length: 4, vsync: this);
@@ -28,41 +161,72 @@ class _ProfileState extends State<Profile>  with TickerProviderStateMixin{
                     children: [
                       Stack(
                         children: [
-                          Container(
-                            width: 90,
-                            height: 90,
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).accentColor.withOpacity(0.6),
-                              shape: BoxShape.circle,
-                              image: DecorationImage(
-                                fit: BoxFit.contain,
-                                image: AssetImage("asset/image/user.webp")
-                              )
-                            ),
+                          StreamBuilder(
+                            stream: FirebaseFirestore.instance.collection("users-picture").
+                            doc(FirebaseAuth.instance.currentUser!.email).collection("images").
+                            doc(FirebaseAuth.instance.currentUser!.uid).snapshots(),
+                            builder: (BuildContext context, AsyncSnapshot snapshot){
+                              var data = snapshot.data;
+                              if(data==null){
+                                return Container(
+                                  width: 90,
+                                  height: 90,
+                                  decoration: BoxDecoration(
+                                      color: Theme.of(context).accentColor.withOpacity(0.6),
+                                      shape: BoxShape.circle,
+                                      image: DecorationImage(
+                                          fit: BoxFit.contain,
+                                          image: NetworkImage("https://commons.wikimedia.org/wiki/File:User-avatar.svg")
+                                      )
+                                  ),
+                                );
+                              }else{
+                                return profilepic(data);
+                              }
+                            },
                           ),
                           Positioned(
                             right: 0,
                               bottom: 10,
-                              child: Container(
-                                width: 20,
-                                height: 20,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Colors.black.withOpacity(0.6)
-                                ),
+                              child: InkWell(
+                                onTap: (){
+                                  _showPicker(context);
+                                },
+                                child: Container(
+                                  width: 20,
+                                  height: 20,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.black.withOpacity(0.6)
+                                  ),
 
-                                child: Icon(Icons.edit,size: 12,color: Colors.white,),
+                                  child: Icon(Icons.edit,size: 12,color: Colors.white,),
+                                ),
                               )
                           )
                         ],
                       ),
                       SizedBox(height: 10,),
-                      Text("Elizabeth",style: TextStyle(
-                        fontFamily: "Rubik",
-                        fontWeight: FontWeight.w500,
-                        fontSize: 14,
-                        color: Colors.white
-                      ),),
+                      StreamBuilder(
+                          stream: FirebaseFirestore.instance.collection("users-data")
+                              .doc(FirebaseAuth.instance.currentUser!.email)
+                              .snapshots(),
+                          builder: (BuildContext context, AsyncSnapshot snapshot){
+                            var data = snapshot.data;
+                            return RichText(
+                              overflow: TextOverflow.ellipsis,
+                              text: TextSpan(
+                                text: data["first-name"]+" "+data["last-name"],
+                                style: TextStyle(
+                                    fontFamily: "Rubik",
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 14,
+                                    color: Colors.white
+                                ),
+                              ),
+                            );
+                          }
+                      ),
                       SizedBox(height: 10,),
                       Text("Youtuber Music",style: TextStyle(
                           fontFamily: "Rubik",
@@ -207,22 +371,45 @@ class _ProfileState extends State<Profile>  with TickerProviderStateMixin{
                                       children: [
                                         Row(
                                           children: [
-                                            Container(
-                                              width: 40,
-                                              height: 40,
-                                              padding: EdgeInsets.all(2),
-                                              decoration: BoxDecoration(
-                                                  color: Theme.of(context)
-                                                      .accentColor
-                                                      .withOpacity(0.7),
-                                                  border: Border.all(
-                                                      width: 2,
-                                                      color: Color(0xff3D3D3D)),
-                                                  shape: BoxShape.circle,
-                                                  image: DecorationImage(
-                                                      image: AssetImage(
-                                                          'asset/image/user.webp'),
-                                                      fit: BoxFit.contain)),
+                                            StreamBuilder(
+                                              stream: FirebaseFirestore.instance.collection("users-picture").
+                                              doc(FirebaseAuth.instance.currentUser!.email).collection("images").
+                                              doc(FirebaseAuth.instance.currentUser!.uid).snapshots(),
+                                              builder: (BuildContext context, AsyncSnapshot snapshot){
+                                                var data = snapshot.data;
+                                                if(data==null){
+                                                  return Container(
+                                                    width: 40,
+                                                    height: 40,
+                                                    decoration: BoxDecoration(
+                                                        color: Theme.of(context).accentColor.withOpacity(0.6),
+                                                        shape: BoxShape.circle,
+                                                        image: DecorationImage(
+                                                            fit: BoxFit.cover,
+                                                            image: NetworkImage("https://commons.wikimedia.org/wiki/File:User-avatar.svg")
+                                                        )
+                                                    ),
+                                                  );
+                                                }else{
+                                                  return Container(
+                                                    width: 40,
+                                                    height: 40,
+                                                    padding: EdgeInsets.all(2),
+                                                    decoration: BoxDecoration(
+                                                        color: Theme.of(context)
+                                                            .accentColor
+                                                            .withOpacity(0.7),
+                                                        border: Border.all(
+                                                            width: 2,
+                                                            color: Color(0xff3D3D3D)),
+                                                        shape: BoxShape.circle,
+                                                        image: DecorationImage(
+                                                            image: AssetImage(
+                                                                data["downloadUrl"]),
+                                                            fit: BoxFit.cover)),
+                                                  );
+                                                }
+                                              },
                                             ),
                                             SizedBox(
                                               width: 10,
@@ -682,5 +869,53 @@ class _ProfileState extends State<Profile>  with TickerProviderStateMixin{
         ),
       ),
     );
+  }
+
+  void _showPicker(context) {
+    showModalBottomSheet(context: context, builder: (context){
+      return Container(
+        height: 70,
+        padding: EdgeInsets.all(10),
+        color: Theme.of(context).primaryColor,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            InkWell(
+              onTap: (){
+                imgFromCamera();
+                Navigator.of(context).pop();
+              },
+              child: Column(
+                children: [
+                  Icon(Icons.camera_alt,color: Theme.of(context).accentColor,),
+                  Text("Camera",style: TextStyle(
+                      color: Theme.of(context).accentColor,
+                      fontFamily: "Rubik",
+                      fontWeight: FontWeight.w500
+                  ),)
+                ],
+              ),
+            ),
+
+            InkWell(
+              onTap: (){
+                imgFromGallery();
+                Navigator.of(context).pop();
+              },
+              child: Column(
+                children: [
+                  Icon(Icons.photo,color: Theme.of(context).accentColor),
+                  Text("Gallery",style: TextStyle(
+                      color: Theme.of(context).accentColor,
+                      fontFamily: "Rubik",
+                      fontWeight: FontWeight.w500
+                  ))
+                ],
+              ),
+            )
+          ],
+        ),
+      );
+    });
   }
 }

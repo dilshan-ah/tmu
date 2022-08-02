@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -11,6 +13,7 @@ class Feed extends StatefulWidget {
 }
 
 class _FeedState extends State<Feed> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -50,19 +53,44 @@ class _FeedState extends State<Feed> {
           SizedBox(
             width: 10,
           ),
-          InkWell(
-            child: Container(
-              width: 45,
-              height: 45,
-              padding: EdgeInsets.all(2),
-              decoration: BoxDecoration(
-                  color: Theme.of(context).accentColor.withOpacity(0.7),
-                  border: Border.all(width: 2, color: Color(0xff3D3D3D)),
-                  shape: BoxShape.circle,
-                  image: DecorationImage(
-                      image: AssetImage('asset/image/user.webp'),
-                      fit: BoxFit.contain)),
-            ),
+          StreamBuilder(
+              stream: FirebaseFirestore.instance.collection("users-picture").
+              doc(FirebaseAuth.instance.currentUser!.email).collection("images").
+              doc(FirebaseAuth.instance.currentUser!.uid).snapshots(),
+              builder: (BuildContext context, AsyncSnapshot snapshot){
+                var data = snapshot.data;
+                if(data==null){
+                  return InkWell(
+                    child: Container(
+                      width: 45,
+                      height: 45,
+                      padding: EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                          color: Theme.of(context).accentColor.withOpacity(0.7),
+                          border: Border.all(width: 2, color: Color(0xff3D3D3D)),
+                          shape: BoxShape.circle,
+                          image: DecorationImage(
+                              image: NetworkImage("https://commons.wikimedia.org/wiki/File:User-avatar.svg"),
+                              fit: BoxFit.contain)),
+                    ),
+                  );
+                }else{
+                  return InkWell(
+                    child: Container(
+                      width: 45,
+                      height: 45,
+                      padding: EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                          color: Theme.of(context).accentColor.withOpacity(0.7),
+                          border: Border.all(width: 2, color: Color(0xff3D3D3D)),
+                          shape: BoxShape.circle,
+                          image: DecorationImage(
+                              image: NetworkImage(data["downloadUrl"]),
+                              fit: BoxFit.contain)),
+                    ),
+                  );
+                }
+              }
           ),
           SizedBox(
             width: 10,
@@ -127,18 +155,40 @@ class _FeedState extends State<Feed> {
                       },
                       child: Row(
                         children: [
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                                color: Theme.of(context)
-                                    .accentColor
-                                    .withOpacity(0.7),
-                                shape: BoxShape.circle,
-                                image: DecorationImage(
-                                    image:
-                                        AssetImage('asset/image/user.webp'),
-                                    fit: BoxFit.contain)),
+                          StreamBuilder(
+                              stream: FirebaseFirestore.instance.collection("users-picture").
+                              doc(FirebaseAuth.instance.currentUser!.email).collection("images").
+                              doc(FirebaseAuth.instance.currentUser!.uid).snapshots(),
+                              builder: (BuildContext context, AsyncSnapshot snapshot){
+                                var data = snapshot.data;
+                                if(data==null){
+                                  return InkWell(
+                                    child: Container(
+                                      width: 40,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                          color: Theme.of(context).accentColor.withOpacity(0.7),
+                                          shape: BoxShape.circle,
+                                          image: DecorationImage(
+                                              image: NetworkImage("https://commons.wikimedia.org/wiki/File:User-avatar.svg"),
+                                              fit: BoxFit.cover)),
+                                    ),
+                                  );
+                                }else{
+                                  return InkWell(
+                                    child: Container(
+                                      width: 40,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                          color: Theme.of(context).accentColor.withOpacity(0.7),
+                                          shape: BoxShape.circle,
+                                          image: DecorationImage(
+                                              image: NetworkImage(data["downloadUrl"]),
+                                              fit: BoxFit.cover)),
+                                    ),
+                                  );
+                                }
+                              }
                           ),
                           SizedBox(
                             width: 10,
